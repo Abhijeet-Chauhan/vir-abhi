@@ -13,25 +13,27 @@ Be empathetic, humorous, and engaging, but stay respectful and helpful. If a que
 model = genai.GenerativeModel(model_name="models/gemini-1.5-flash", 
                               system_instruction=sys_prompt)
 
-# Set up the Streamlit application interface
-st.title("Virtual Abhii 😘")
+# Initialize the chat with history functionality
+if "chatbot" not in st.session_state:
+    st.session_state.chatbot = model.start_chat(history=[])  # Start chat with empty history
 
-# Input field for user prompt
-user_prompt = st.text_input("Enter your query:", placeholder="Type your query here...")
+# Streamlit app interface
+st.title("Virtual Abhii 😍")
 
-# Button to generate an answer
-btn_click = st.button("Generate Answer")
+# Welcome message
+if "initial_message" not in st.session_state:
+    st.chat_message("ai").write("Hi there! I am Abhii, your virtual friend. How can I support you today?")
+    st.session_state.initial_message = True
 
-# If the button is clicked and the user has entered a query
-if btn_click and user_prompt:
-    # Generate the response
-    response = model.generate_content(user_prompt)
+# User input
+user_prompt = st.chat_input("Say something...")
+
+if user_prompt:
+    # Display the user's message
+    st.chat_message("user").write(user_prompt)
     
-    # Check if the response contains candidates and handle accordingly
-    if response and hasattr(response, 'candidates') and response.candidates:
-        # Get the text content from the first candidate
-        answer = response.candidates[0].content.parts[0].text
-        st.write(answer)
-    else:
-        # Handle case when no response is generated
-        st.write("Sorry, I couldn't generate an answer. Please try again.")
+    # Generate the response
+    response = st.session_state.chatbot.send_message(user_prompt)
+    
+    # Display the AI's response
+    st.chat_message("ai").write(response.text)
